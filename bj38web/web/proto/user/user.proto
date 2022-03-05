@@ -1,0 +1,24 @@
+syntax = "proto3";
+option go_package = "go.micro.srv.user";
+package go.micro.srv.user;
+
+service User {
+	rpc Register(RegReq) returns (Response) {};
+}
+
+message RegReq {
+	string mobile = 1;
+	string password = 2;
+	string sms_code = 3;
+}
+
+message Request {
+	string phone = 1;
+	string imgCode = 2;
+	string uuid = 3;
+}
+
+message Response {
+	string errno = 1;
+	string errmsg = 2;
+}
