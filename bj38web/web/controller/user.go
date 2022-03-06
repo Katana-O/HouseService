@@ -9,12 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
 	"github.com/micro/go-micro"
+	"github.com/tedcy/fdfs_client"
 	"image/png"
+	"main/bj38web/web/model"
 	getCaptcha "main/bj38web/web/proto/getCaptcha"
 	go_micro_srv_user "main/bj38web/web/proto/user"
 	"main/bj38web/web/utils"
 	"net/http"
-	"main/bj38web/web/model"
+	"os"
+	"path"
 )
 
 func GetImageCd(ctx * gin.Context) {
@@ -35,16 +38,53 @@ func GetImageCd(ctx * gin.Context) {
 }
 
 func PostAvatar(ctx * gin.Context) {
-	fileHeader, _ := ctx.FormFile("avatar")
-	err := ctx.SaveUploadedFile(fileHeader, "test/" + fileHeader.Filename)
-	fmt.Println(err)
+	fileHeader, err := ctx.FormFile("avatar")
+	if err != nil {
+		fmt.Println("PostAvatar 1 err:", err)
+		return
+	}
+	// fdfsClient, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
+	//myfile, err := os.Open("conf/fdfs/client.conf")
+	//if err != nil {
+	//	fmt.Println("PostAvatar 1.5 err:", err)
+	//	return
+	//}
+	//fmt.Println("myfile:", myfile)
+	//fdfsClient, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
+	fdfsClient, err := fdfs_client.NewClientWithConfig("../service/user/conf/fdfs.conf")
+	if err != nil {
+		fmt.Println("PostAvatar 2 err:", err)
+		return
+	}
+	f, err := fileHeader.Open()
+	if err != nil {
+		fmt.Println("PostAvatar 3 err:", err)
+		return
+	}
+	fileBuf := make([]byte, fileHeader.Size)
+	f.Read(fileBuf)
+	fileExtName := path.Ext(fileHeader.Filename)[1:]
+	dir, _ := os.Getwd()
+	fmt.Println("fileHeader.Size:", fileHeader.Size, " extName:", fileExtName, " dir:", dir)
+	fdfsFile, err := os.Open("../service/user/conf/fdfs.conf")
+	if err != nil {
+		fmt.Println("PostAvatar 3.5 err:", err)
+		return
+	}
+	fmt.Println("fdfsFile:", fdfsFile)
+	remoteID, err := fdfsClient.UploadByBuffer(fileBuf, fileExtName)
+	if err != nil {
+		fmt.Println("PostAvatar 4 err:", err)
+		return
+	}
+	fmt.Println("remoteID:", remoteID)
+
 	resp := make(map[string]interface{})
 	resp["errno"] = utils.RECODE_OK
 	resp["errmsg"] = utils.RecodeText(utils.RECODE_OK)
+
 	temp := make(map[string]interface{})
-	///home/jjj/Desktop/testGO114/src/bj38web/web/test
-	fmt.Println("fileheader.filename:", fileHeader.Filename)
-	temp["avatar_url"] = "http://127.0.0.1:8080/test/" + fileHeader.Filename
+	temp["avatar_url"] = "http://192.168.1.161:8888/" + remoteID
 	resp["data"] = temp
 	ctx.JSON(http.StatusOK, resp)
 }
