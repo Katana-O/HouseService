@@ -67,7 +67,9 @@ func UpdateUserName(newName string, oldName string) error {
 	return GlobalConn.Model(new(User)).Where("name = ?", oldName).Update("name", newName).Error
 }
 
-
+func UpdateAvatar(userName string, avatar_url string) error {
+	return GlobalConn.Model(new(User)).Where("name = ?", userName).Update("avatar_url", avatar_url).Error
+}
 
 
 

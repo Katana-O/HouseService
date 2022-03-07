@@ -39,6 +39,17 @@ func main() {
 		r1.GET("/user", controller.GetUserInfo)
 		r1.PUT("/user/name", controller.PutUserInfo)
 		r1.POST("/user/avatar", controller.PostAvatar)
+		r1.POST("/user/auth", controller.PostUserAuth)
+		r1.GET("/user/auth", controller.GetUserInfo)
+		r1.GET("/user/houses",controller.GetUserHouses)
+		r1.POST("/houses", controller.PostHouses)
+		r1.POST("/houses/:id/images",controller.PostHousesImage)
+		//展示房屋详情
+		r1.GET("/houses/:id",controller.GetHouseInfo)
+		//展示首页轮播图
+		r1.GET("/house/index",controller.GetIndex)
+		//搜索房屋
+		r1.GET("/houses",controller.GetHouses)
 	}
 	router.Run(":8080")
 }

@@ -86,3 +86,9 @@ func RegisterUser(mobile, pwd string) error {
 	GlobalConn.Create(&user)
 	return nil
 }
+
+//存储用户真实姓名
+func SaveRealName(userName,realName,idCard string)error{
+	return GlobalConn.Model(new(User)).Where("name = ?",userName).
+		Updates(map[string]interface{}{"real_name":realName,"id_card":idCard}).Error
+}
