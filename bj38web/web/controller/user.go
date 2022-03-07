@@ -135,9 +135,13 @@ func GetUserHouses(ctx * gin.Context) {
 			UserName: userName.(string),
 		},
 	)
-	fmt.Println("GetUserHouses resp:", resp)
+	//fmt.Println("GetUserHouses resp:", resp)
 	ctx.JSON(http.StatusOK, resp)
 	fmt.Println("GetUserHouses 2")
+}
+
+func Test(ctx * gin.Context) {
+	fmt.Println("Gin Test Enter")
 }
 
 func GetUserInfo(ctx * gin.Context) {

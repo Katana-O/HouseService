@@ -41,15 +41,27 @@ func main() {
 		r1.POST("/user/avatar", controller.PostAvatar)
 		r1.POST("/user/auth", controller.PostUserAuth)
 		r1.GET("/user/auth", controller.GetUserInfo)
-		r1.GET("/user/houses",controller.GetUserHouses)
+
+		//获取已发布房源信息
+		r1.GET("/user/houses", controller.GetUserHouses)
+		//发布房源
 		r1.POST("/houses", controller.PostHouses)
-		r1.POST("/houses/:id/images",controller.PostHousesImage)
+		//添加房源图片
+		r1.POST("/houses/:id/images", controller.PostHousesImage)
 		//展示房屋详情
-		r1.GET("/houses/:id",controller.GetHouseInfo)
+		r1.GET("/houses/:id", controller.GetHouseInfo)
 		//展示首页轮播图
-		r1.GET("/house/index",controller.GetIndex)
+		r1.GET("/house/index", controller.GetIndex)
 		//搜索房屋
-		r1.GET("/houses",controller.GetHouses)
+		r1.GET("/houses", controller.GetHouses)
+
+		//下订单
+		r1.POST("/orders", controller.PostOrders)
+		//获取订单
+		r1.GET("/user/orders", controller.GetUserOrder)
+		//同意/拒绝订单
+		r1.PUT("/orders/:id/status", controller.PutOrders)
+
 	}
 	router.Run(":8080")
 }

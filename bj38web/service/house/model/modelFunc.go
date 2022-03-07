@@ -13,7 +13,6 @@ func AddHouse(request *house.Request) (int, error) {
 	var houseInfo House
 	//给house赋值
 	houseInfo.Address = request.Address
-	fmt.Println("AddHouse GlobalDB:", GlobalDB)
 	//根据userName获取userId
 	var user User
 	if err := GlobalDB.Where("name = ?", request.UserName).Find(&user).Error; err != nil {
@@ -98,7 +97,6 @@ func GetUserHouse(userName string) ([]*house.Houses, error) {
 	var houseInfos []*house.Houses
 
 	fmt.Println("GetUserHouse 1")
-	fmt.Println("GLobalDB:", GlobalDB, " GlobalRedis:", GlobalRedis)
 	//有用户名
 	var user User
 	if err := GlobalDB.Where("name = ?", userName).Find(&user).Error; err != nil {  // problem occurs.
