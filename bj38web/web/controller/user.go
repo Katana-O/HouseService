@@ -15,10 +15,12 @@ import (
 	getCaptcha "main/bj38web/web/proto/getCaptcha"
 	go_micro_srv_house "main/bj38web/web/proto/house"
 	go_micro_srv_user "main/bj38web/web/proto/user"
+	go_micro_srv_userOrder "main/bj38web/web/proto/userOrder"
 	"main/bj38web/web/utils"
 	"net/http"
 	"os"
 	"path"
+
 )
 
 func GetImageCd(ctx * gin.Context) {
@@ -138,10 +140,6 @@ func GetUserHouses(ctx * gin.Context) {
 	//fmt.Println("GetUserHouses resp:", resp)
 	ctx.JSON(http.StatusOK, resp)
 	fmt.Println("GetUserHouses 2")
-}
-
-func Test(ctx * gin.Context) {
-	fmt.Println("Gin Test Enter")
 }
 
 func GetUserInfo(ctx * gin.Context) {
@@ -271,7 +269,6 @@ func PostLogin(ctx * gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 
 	// Get Data from Redis/MySQL.
-
 }
 
 func GetArea(ctx * gin.Context) {
@@ -283,15 +280,14 @@ func GetArea(ctx * gin.Context) {
 	if len(areaData) == 0 {
 		// 2.
 		// get data from mysql first
-		fmt.Println("get Area len == 0")
+		//fmt.Println("get Area len == 0")
 		model.GlobalConn.Find(&areas)
 		areaBuf, _ := json.Marshal(areas)
 		conn.Do("set", "areaData", areaBuf)
 	} else {
-		fmt.Println("get Area len != 0")
+		//fmt.Println("get Area len != 0")
 		json.Unmarshal(areaData, &areas)
 	}
-
 
 	// write data to redis.
 	resp := make(map[string]interface{})
@@ -497,4 +493,92 @@ func PostHouses(ctx * gin.Context) {
 	//返回数据
 	ctx.JSON(http.StatusOK, resp)
 	fmt.Println("PostHouses 2")
+}
+
+type OrderStu struct {
+	EndDate   string `json:"end_date"`
+	HouseId   string `json:"house_id"`
+	StartDate string `json:"start_date"`
+}
+
+
+//下订单
+func PostOrders(ctx *gin.Context) {
+	//获取数据
+	var order OrderStu
+	err := ctx.Bind(&order)
+
+	//校验数据
+	if err != nil {
+		fmt.Println("获取数据错误", err)
+		return
+	}
+	//获取用户名
+	userName := sessions.Default(ctx).Get("userName")
+
+	//处理数据  服务端处理业务
+	microClient := go_micro_srv_userOrder.NewUserOrderService("go.micro.srv.userOrder", utils.GetMicroClient())
+	//调用服务
+	resp, _ := microClient.CreateOrder(context.TODO(), &go_micro_srv_userOrder.Request{
+		StartDate: order.StartDate,
+		EndDate:   order.EndDate,
+		HouseId:   order.HouseId,
+		UserName:  userName.(string),
+	})
+
+	//返回数据
+	ctx.JSON(http.StatusOK, resp)
+}
+
+//获取订单信息
+func GetUserOrder(ctx *gin.Context) {
+	//获取get请求传参
+	role := ctx.Query("role")
+	//校验数据
+	if role == "" {
+		fmt.Println("获取数据失败")
+		return
+	}
+
+	//处理数据  服务端
+	microClient := go_micro_srv_userOrder.NewUserOrderService("go.micro.srv.userOrder",utils.GetMicroClient())
+	//调用远程服务
+	resp,_ :=microClient.GetOrderInfo(context.TODO(),&go_micro_srv_userOrder.GetReq{
+		Role:role,
+		UserName:sessions.Default(ctx).Get("userName").(string),
+	})
+
+	//返回数据
+	ctx.JSON(http.StatusOK,resp)
+}
+
+//更新订单状态
+func PutOrders(ctx*gin.Context){
+	//获取数据
+	id := ctx.Param("id")
+	var statusStu StatusStu
+	err := ctx.Bind(&statusStu)
+
+	//校验数据
+	if err != nil || id == "" {
+		fmt.Println("获取数据错误",err)
+		return
+	}
+
+	//处理数据   更新订单状态
+	microClient := go_micro_srv_userOrder.NewUserOrderService("go.micro.srv.userOrder",utils.GetMicroClient())
+	//调用元和产能服务
+	resp,_ := microClient.UpdateStatus(context.TODO(),&go_micro_srv_userOrder.UpdateReq{
+		Action:statusStu.Action,
+		Reason:statusStu.Reason,
+		Id:id,
+	})
+
+	//返回数据
+	ctx.JSON(http.StatusOK,resp)
+}
+
+type StatusStu struct {
+	Action string `json:"action"`
+	Reason string `json:"reason"`
 }
